@@ -1,121 +1,113 @@
-# lambda-template
-A GitHub template for quickly starting a new AWS lambda project.
+# lambda-docker-runner
 
-## Naming
-Naming conventions:
-* for a vanilla Lambda: `lambda-<context>`
-* for a Cloudformation Transform macro: `cfn-macro-<context>`
-* for a Cloudformation Custom Resource: `cfn-cr-<context>`
+This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
-## Development
+- hello_world - Code for the application's Lambda function and Project Dockerfile.
+- events - Invocation events that you can use to invoke the function.
+- tests - Unit tests for the application code. 
+- template.yaml - A template that defines the application's AWS resources.
 
-### Contributions
-Contributions are welcome.
+The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
 
-### Requirements
-Run `pipenv install --dev` to install both production and development
-requirements, and `pipenv shell` to activate the virtual environment. For more
-information see the [pipenv docs](https://pipenv.pypa.io/en/latest/).
+## Deploy the sample application
 
-After activating the virtual environment, run `pre-commit install` to install
-the [pre-commit](https://pre-commit.com/) git hook.
+The Serverless Application Model Command Line Interface (SAM CLI) is an extension of the AWS CLI that adds functionality for building and testing Lambda applications. It uses Docker to run your functions in an Amazon Linux environment that matches Lambda. It can also emulate your application's build environment and API.
 
-### Create a local build
+To use the SAM CLI, you need the following tools.
 
-```shell script
-$ sam build
+* SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+* Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
+
+You may need the following for local testing.
+* [Python 3 installed](https://www.python.org/downloads/)
+
+To build and deploy your application for the first time, run the following in your shell:
+
+```bash
+sam build
+sam deploy --guided
 ```
 
-### Run unit tests
-Tests are defined in the `tests` folder in this project. Use PIP to install the
-[pytest](https://docs.pytest.org/en/latest/) and run unit tests.
+The first command will build a docker image from a Dockerfile and then copy the source of your application inside the Docker image. The second command will package and deploy your application to AWS, with a series of prompts:
 
-```shell script
-$ python -m pytest tests/ -v
+* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
+* **AWS Region**: The AWS region you want to deploy your app to.
+* **Confirm changes before deploy**: If set to yes, any change sets will be shown to you before execution for manual review. If set to no, the AWS SAM CLI will automatically deploy application changes.
+* **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modified IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
+* **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
+
+You can find your API Gateway Endpoint URL in the output values displayed after deployment.
+
+## Use the SAM CLI to build and test locally
+
+Build your application with the `sam build` command.
+
+```bash
+lambda-docker-runner$ sam build
 ```
 
-### Run integration tests
-Running integration tests
-[requires docker](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html)
+The SAM CLI builds a docker image from a Dockerfile and then installs dependencies defined in `hello_world/requirements.txt` inside the docker image. The processed template file is saved in the `.aws-sam/build` folder.
 
-```shell script
-$ sam local invoke HelloWorldFunction --event events/event.json
+Test a single function by invoking it directly with a test event. An event is a JSON document that represents the input that the function receives from the event source. Test events are included in the `events` folder in this project.
+
+Run functions locally and invoke them with the `sam local invoke` command.
+
+```bash
+lambda-docker-runner$ sam local invoke HelloWorldFunction --event events/event.json
 ```
 
-## Deployment
+The SAM CLI can also emulate your application's API. Use the `sam local start-api` to run the API locally on port 3000.
 
-### Deploy Lambda to S3
-Deployments are sent to the
-[Sage cloudformation repository](https://bootstrap-awss3cloudformationbucket-19qromfd235z9.s3.amazonaws.com/index.html)
-which requires permissions to upload to Sage
-`bootstrap-awss3cloudformationbucket-19qromfd235z9` and
-`essentials-awss3lambdaartifactsbucket-x29ftznj6pqw` buckets.
-
-```shell script
-sam package --template-file .aws-sam/build/template.yaml \
-  --s3-bucket essentials-awss3lambdaartifactsbucket-x29ftznj6pqw \
-  --output-template-file .aws-sam/build/lambda-template.yaml
-
-aws s3 cp .aws-sam/build/lambda-template.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/lambda-template/master/
+```bash
+lambda-docker-runner$ sam local start-api
+lambda-docker-runner$ curl http://localhost:3000/
 ```
 
-## Publish Lambda
-
-### Private access
-Publishing the lambda makes it available in your AWS account.  It will be accessible in
-the [serverless application repository](https://console.aws.amazon.com/serverlessrepo).
-
-```shell script
-sam publish --template .aws-sam/build/lambda-template.yaml
-```
-
-### Public access
-Making the lambda publicly accessible makes it available in the
-[global AWS serverless application repository](https://serverlessrepo.aws.amazon.com/applications)
-
-```shell script
-aws serverlessrepo put-application-policy \
-  --application-id <lambda ARN> \
-  --statements Principals=*,Actions=Deploy
-```
-
-## Install Lambda into AWS
-
-### Sceptre
-Create the following [sceptre](https://github.com/Sceptre/sceptre) file
-config/prod/lambda-template.yaml
+The SAM CLI reads the application template to determine the API's routes and the functions that they invoke. The `Events` property on each function's definition includes the route and method for each path.
 
 ```yaml
-template_path: "remote/lambda-template.yaml"
-stack_name: "lambda-template"
-stack_tags:
-  Department: "Platform"
-  Project: "Infrastructure"
-  OwnerEmail: "it@sagebase.org"
-hooks:
-  before_launch:
-    - !cmd "curl https://bootstrap-awss3cloudformationbucket-19qromfd235z9.s3.amazonaws.com/lambda-template/master/lambda-template.yaml --create-dirs -o templates/remote/lambda-template.yaml"
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
 ```
 
-Install the lambda using sceptre:
-```shell script
-sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/lambda-template.yaml
+## Add a resource to your application
+The application template uses AWS Serverless Application Model (AWS SAM) to define application resources. AWS SAM is an extension of AWS CloudFormation with a simpler syntax for configuring common serverless application resources such as functions, triggers, and APIs. For resources not included in [the SAM specification](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md), you can use standard [AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html) resource types.
+
+## Fetch, tail, and filter Lambda function logs
+
+To simplify troubleshooting, SAM CLI has a command called `sam logs`. `sam logs` lets you fetch logs generated by your deployed Lambda function from the command line. In addition to printing the logs on the terminal, this command has several nifty features to help you quickly find the bug.
+
+`NOTE`: This command works for all AWS Lambda functions; not just the ones you deploy using SAM.
+
+```bash
+lambda-docker-runner$ sam logs -n HelloWorldFunction --stack-name lambda-docker-runner --tail
 ```
 
-### AWS Console
-Steps to deploy from AWS console.
+You can find more information and examples about filtering Lambda function logs in the [SAM CLI Documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-logging.html).
 
-1. Login to AWS
-2. Access the
-[serverless application repository](https://console.aws.amazon.com/serverlessrepo)
--> Available Applications
-3. Select application to install
-4. Enter Application settings
-5. Click Deploy
+## Unit tests
 
-## Releasing
+Tests are defined in the `tests` folder in this project. Use PIP to install the [pytest](https://docs.pytest.org/en/latest/) and run unit tests from your local machine.
 
-We have setup our CI to automate a releases.  To kick off the process just create
-a tag (i.e 0.0.1) and push to the repo.  The tag must be the same number as the current
-version in [template.yaml](template.yaml).  Our CI will do the work of deploying and publishing
-the lambda.
+```bash
+lambda-docker-runner$ pip install pytest pytest-mock --user
+lambda-docker-runner$ python -m pytest tests/ -v
+```
+
+## Cleanup
+
+To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
+
+```bash
+aws cloudformation delete-stack --stack-name lambda-docker-runner
+```
+
+## Resources
+
+See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
+
+Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
