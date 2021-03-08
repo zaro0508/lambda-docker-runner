@@ -1,3 +1,4 @@
+# Based off of https://github.com/aws-samples/aws-lambda-efs-samples
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
@@ -5,12 +6,57 @@ Description: >
 
   Sample SAM Template for lambda-docker-runner
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-Globals:
-  Function:
-    Timeout: 3
-
+Parameters:
+  SecurityGroupIds:
+    Type: CommaDelimitedList
+  SubnetIDs:
+    Type: CommaDelimitedList
+    Description: The list of SubnetIDs in your Virtual Private Cloud (VPC)
+  EFSpath:
+    Type: String
+    Default: /mnt/efs
+  AccessPointARN:
+    Type: String
+    Description: Access point ARN
+  MemorySize:
+    Type: Number
+    MinValue: 128
+    MaxValue: 10240
+    Default: 128
+    Description: >-
+      The amount of memory available to the function at runtime. Increasing the function's
+      memory also increases its CPU allocation.
 Resources:
+  EfsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AmazonElasticFileSystemClientFullAccess
+            Effect: Allow
+            Action:
+              - elasticfilesystem:ClientMount
+              - elasticfilesystem:ClientRootAccess
+              - elasticfilesystem:ClientWrite
+              - elasticfilesystem:DescribeMountTargets
+            Resource: "*"
+  ExecutionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AWSLambdaVPCAccessExecutionRole
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DeleteNetworkInterface
+            Resource: "*"
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Metadata:
@@ -18,13 +64,28 @@ Resources:
       DockerContext: ./hello_world
       DockerTag: python3.8-v1
     Properties:
+      Timeout: 900
       PackageType: Image
+      MemorySize: !Ref MemorySize
+      Environment:
+        Variables:
+          EFS_PATH: !Ref EFSpath
       Events:
         HelloWorld:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /hello
             Method: get
+      VpcConfig:
+        SecurityGroupIds: !Ref SecurityGroupIds
+        SubnetIds: !Ref SubnetIDs
+      FileSystemConfigs:
+        - Arn: !Ref AccessPointARN
+          LocalMountPath: !Ref EFSpath
+      Policies:
+        - !Ref EfsPolicy
+        - !Ref ExecutionPolicy
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
