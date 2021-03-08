@@ -23,12 +23,12 @@ Parameters:
     MinValue: 128
     MaxValue: 10240
     Default: 128
-    Description: >-
+    Description: >
       The amount of memory available to the function at runtime. Increasing the function's
       memory also increases its CPU allocation.
   ImageUri:
     Type: String
-    Description: >-
+    Description: >
       The URI of the Amazon ECR) repository for the Lambda function's container image.
       Example: 111111111.dkr.ecr.us-east-1.amazonaws.com/MY-DOCKER:latest
   EntryPoint:
@@ -82,7 +82,7 @@ Resources:
               - ec2:DeleteNetworkInterface
             Resource: "*"
   DockerRunnerFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       Timeout: 900
       PackageType: Image
@@ -97,7 +97,7 @@ Resources:
           EFS_PATH: !Ref EFSpath
       Events:
         DockerRunner:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /run
             Method: get
@@ -110,11 +110,7 @@ Resources:
       Policies:
         - !Ref EfsPolicy
         - !Ref ExecutionPolicy
-
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   DockerRunnerApi:
     Description: "API Gateway endpoint URL for Prod stage for Docker Runner function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/run/"
