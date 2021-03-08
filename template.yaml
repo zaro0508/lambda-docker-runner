@@ -81,7 +81,7 @@ Resources:
               - ec2:DescribeNetworkInterfaces
               - ec2:DeleteNetworkInterface
             Resource: "*"
-  HelloWorldFunction:
+  DockerRunnerFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       Timeout: 900
@@ -96,10 +96,10 @@ Resources:
         Variables:
           EFS_PATH: !Ref EFSpath
       Events:
-        HelloWorld:
+        DockerRunner:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /hello
+            Path: /run
             Method: get
       VpcConfig:
         SecurityGroupIds: !Ref SecurityGroupIds
@@ -115,12 +115,12 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  DockerRunnerApi:
+    Description: "API Gateway endpoint URL for Prod stage for Docker Runner function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/run/"
+  DockerRunnerFunction:
+    Description: "Docker Runner Lambda Function ARN"
+    Value: !GetAtt DockerRunnerFunction.Arn
+  DockerRunnerFunctionIamRole:
+    Description: "Implicit IAM Role created for Docker Runner function"
+    Value: !GetAtt DockerRunnerFunctionRole.Arn
