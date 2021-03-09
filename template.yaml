@@ -6,13 +6,18 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: Container Settings
+          default: Container Image
         Parameters:
           - ImageUri
           - EntryPoint
           - Command
           - WorkingDirectory
           - MemorySize
+      - Label:
+          default: Synapse
+        Parameters:
+          - SynapseUser
+          - SynapsePassword
       - Label:
           default: Execution Trigger
         Parameters:
@@ -77,6 +82,15 @@ Parameters:
     Type: String
     Default: cron(0 09 ? * MON *)  # Run every Monday at 9am
     ConstraintDescription: "Use schedule format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html"
+  SynapseUser:
+    Type: String
+    Default: ""
+    Description: (Optional) The synapse user name
+  SynapsePassword:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: (Optional) The synapse password
 Conditions:
   HasEntryPoint: !Not [!Equals [!Ref EntryPoint, ""]]
   HasCommand: !Not
@@ -129,6 +143,8 @@ Resources:
       Environment:
         Variables:
           EFS_PATH: !Ref EFSpath
+          SYNAPSE_USER: !Ref SynapseUser
+          SYNAPSE_PASSWORD: !Ref SynapsePassword
       Events:
         RecurringSchedule:
           Type: Schedule
