@@ -1,11 +1,30 @@
 # Based off of https://github.com/aws-samples/aws-lambda-efs-samples
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  python3.8
-
-  Sample SAM Template for lambda-docker-runner
-
+Description: Lambda to run a docker container
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Container Settings
+        Parameters:
+          - ImageUri
+          - EntryPoint
+          - Command
+          - WorkingDirectory
+          - MemorySize
+      - Label:
+          default: Execution Trigger
+        Parameters:
+          - EnableSchedule
+          - Schedule
+      - Label:
+          default: EFS
+        Parameters:
+          - SecurityGroupIds
+          - SubnetIDs
+          - AccessPointARN
+          - EFSpath
 Parameters:
   SecurityGroupIds:
     Type: CommaDelimitedList
@@ -34,15 +53,30 @@ Parameters:
   EntryPoint:
     Type: String
     Default: ""
-    Description: (Optional) The entry point to the application in the container
+    Description: (Optional) The entry point to the application in the docker container
   Command:
     Type: CommaDelimitedList
     Default: ""
-    Description: (Optional) Command separated list of parameters to pass in with ENTRYPOINT
+    Description: (Optional) Command separated list of parameters to pass in with docker ENTRYPOINT
   WorkingDirectory:
     Type: String
     Default: ""
-    Description: (Optional) The working directory for the container
+    Description: (Optional) The working directory for the docker container
+  EnableSchedule:
+    Description: >
+      true to run on a schedule, false to disable. If enabled a valid Schedule must be provided
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  Schedule:
+    Description: >
+      Schedule to execute the docker, can be a rate or a cron schedule. Format at
+      https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
+    Type: String
+    Default: cron(0 09 ? * MON *)  # Run every Monday at 9am
+    ConstraintDescription: "Use schedule format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html"
 Conditions:
   HasEntryPoint: !Not [!Equals [!Ref EntryPoint, ""]]
   HasCommand: !Not
@@ -96,6 +130,11 @@ Resources:
         Variables:
           EFS_PATH: !Ref EFSpath
       Events:
+        RecurringSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: !Ref Schedule
+            Enabled: !Ref EnableSchedule
         DockerRunner:
           Type: Api
           Properties:

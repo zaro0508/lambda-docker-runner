@@ -2,11 +2,11 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "hello-world-app"
+stack_name = "docker-runner-app"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-4h9lffzdpzzw"
-s3_prefix = "hello-world-app"
+s3_prefix = "docker-runner-app"
 region = "us-east-1"
 profile = "itsandbox-cfservice"
 capabilities = "CAPABILITY_IAM"
-image_repositories = ["DockerRunnerFunction=804034162148.dkr.ecr.us-east-1.amazonaws.com/demo-app-hello-world"]
-parameter_overrides = "SecurityGroupIds=\"sg-0c625e6cfa9c17e33\" SubnetIDs=\"subnet-0aa9c73cbf165d4a0,subnet-07d44829944aea30f,subnet-05c3b8e6ce902c43f\" EFSpath=\"/mnt/efs\" AccessPointARN=\"arn:aws:elasticfilesystem:us-east-1:804034162148:access-point/fsap-040079bb4ea6261fd\" MemorySize=\"128\" ImageUri=\"804034162148.dkr.ecr.us-east-1.amazonaws.com/demo-app-hello-world:helloworldfunction-14afd5b9a8b9-python3.8-v1\" EntryPoint=\"\" Command=\"\" WorkingDirectory=\"\""
+image_repositories = ["DockerRunnerFunction=804034162148.dkr.ecr.us-east-1.amazonaws.com/docker-lambda"]
+parameter_overrides = "SecurityGroupIds=\"sg-0c625e6cfa9c17e33\" SubnetIDs=\"subnet-0aa9c73cbf165d4a0,subnet-07d44829944aea30f,subnet-05c3b8e6ce902c43f\" EFSpath=\"/mnt/efs\" AccessPointARN=\"arn:aws:elasticfilesystem:us-east-1:804034162148:access-point/fsap-040079bb4ea6261fd\" MemorySize=\"128\" ImageUri=\"804034162148.dkr.ecr.us-east-1.amazonaws.com/docker-lambda:h1\" EntryPoint=\"\" Command=\"\" WorkingDirectory=\"\" Schedule=\"cron(0 09 ? * MON *)\" EnableSchedule=\"false\""
