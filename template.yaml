@@ -29,14 +29,14 @@ Metadata:
           - SecurityGroupIds
           - SubnetIDs
           - AccessPointARN
-          - EFSpath
+          - EfsPath
 Parameters:
   SecurityGroupIds:
     Type: CommaDelimitedList
   SubnetIDs:
     Type: CommaDelimitedList
     Description: The list of SubnetIDs in your Virtual Private Cloud (VPC)
-  EFSpath:
+  EfsPath:
     Type: String
     Default: /mnt/efs
   AccessPointARN:
@@ -142,7 +142,7 @@ Resources:
       MemorySize: !Ref MemorySize
       Environment:
         Variables:
-          EFS_PATH: !Ref EFSpath
+          EFS_PATH: !Ref EfsPath
           SYNAPSE_USER: !Ref SynapseUser
           SYNAPSE_PASSWORD: !Ref SynapsePassword
       Events:
@@ -161,7 +161,7 @@ Resources:
         SubnetIds: !Ref SubnetIDs
       FileSystemConfigs:
         - Arn: !Ref AccessPointARN
-          LocalMountPath: !Ref EFSpath
+          LocalMountPath: !Ref EfsPath
       Policies:
         - !Ref EfsPolicy
         - !Ref ExecutionPolicy
