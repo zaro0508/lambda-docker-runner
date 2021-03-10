@@ -28,7 +28,7 @@ Metadata:
         Parameters:
           - SecurityGroupIds
           - SubnetIDs
-          - AccessPointARN
+          - AccessPointArn
           - EfsPath
 Parameters:
   SecurityGroupIds:
@@ -39,7 +39,7 @@ Parameters:
   EfsPath:
     Type: String
     Default: /mnt/efs
-  AccessPointARN:
+  AccessPointArn:
     Type: String
     Description: Access point ARN
   MemorySize:
@@ -160,7 +160,7 @@ Resources:
         SecurityGroupIds: !Ref SecurityGroupIds
         SubnetIds: !Ref SubnetIDs
       FileSystemConfigs:
-        - Arn: !Ref AccessPointARN
+        - Arn: !Ref AccessPointArn
           LocalMountPath: !Ref EfsPath
       Policies:
         - !Ref EfsPolicy
