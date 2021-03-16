@@ -3,10 +3,10 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "docker-runner-app"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-4h9lffzdpzzw"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1goir37kiu7hv"
 s3_prefix = "docker-runner-app"
 region = "us-east-1"
-profile = "itsandbox-cfservice"
+profile = "scipooldev-cfservice"
 capabilities = "CAPABILITY_IAM"
-image_repositories = ["DockerRunnerFunction=804034162148.dkr.ecr.us-east-1.amazonaws.com/docker-lambda"]
-parameter_overrides = "SecurityGroupIds=\"sg-0c625e6cfa9c17e33\" SubnetIDs=\"subnet-0aa9c73cbf165d4a0,subnet-07d44829944aea30f,subnet-05c3b8e6ce902c43f\" EFSpath=\"/mnt/efs\" AccessPointARN=\"arn:aws:elasticfilesystem:us-east-1:804034162148:access-point/fsap-040079bb4ea6261fd\" MemorySize=\"128\" ImageUri=\"804034162148.dkr.ecr.us-east-1.amazonaws.com/docker-lambda:h1\" EntryPoint=\"\" Command=\"\" WorkingDirectory=\"\" EnableSchedule=\"false\" Schedule=\"cron(0 09 ? * MON *)\" SynapseUser=\"khaido\""
+image_repositories = ["DockerRunnerFunction=465877038949.dkr.ecr.us-east-1.amazonaws.com/docker-runner"]
+parameter_overrides = "SecurityGroupIds=\"sg-0ae966b9e247b10d7\" SubnetIDs=\"subnet-016b5166a03fd5cb9,subnet-077fe1362542d62df,subnet-09c89765a0c5e084a\" EfsPath=\"/mnt/efs\" AccessPointArn=\"arn:aws:elasticfilesystem:us-east-1:465877038949:access-point/fsap-06a8aaa89dc40edcd\" MemorySize=\"128\" ImageUri=\"465877038949.dkr.ecr.us-east-1.amazonaws.com/docker-runner:latest\" EntryPoint=\"\" Command=\"\" WorkingDirectory=\"\" EnableSchedule=\"false\" Schedule=\"cron(0 09 ? * MON *)\" SynapseUser=\"khaido\""
